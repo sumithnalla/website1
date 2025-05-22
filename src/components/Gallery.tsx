@@ -5,6 +5,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 const Gallery = () => {
   const [selectedItem, setSelectedItem] = useState<number | null>(null);
   const [isLoaded, setIsLoaded] = useState<boolean[]>(Array(galleryData.photos.length).fill(false));
+  const [selectedVenue, setSelectedVenue] = useState<string | 'all'>('all');
   
   useEffect(() => {
     if (selectedItem !== null) {
@@ -26,13 +27,27 @@ const Gallery = () => {
   
   const handlePrev = () => {
     if (selectedItem === null) return;
-    setSelectedItem(selectedItem === 0 ? galleryData.photos.length - 1 : selectedItem - 1);
+    const filteredPhotos = selectedVenue === 'all' 
+      ? galleryData.photos 
+      : galleryData.photos.filter(photo => photo.venue === selectedVenue);
+    const currentIndex = filteredPhotos.findIndex((_, i) => i === selectedItem);
+    setSelectedItem(currentIndex === 0 ? filteredPhotos.length - 1 : currentIndex - 1);
   };
   
   const handleNext = () => {
     if (selectedItem === null) return;
-    setSelectedItem(selectedItem === galleryData.photos.length - 1 ? 0 : selectedItem + 1);
+    const filteredPhotos = selectedVenue === 'all' 
+      ? galleryData.photos 
+      : galleryData.photos.filter(photo => photo.venue === selectedVenue);
+    const currentIndex = filteredPhotos.findIndex((_, i) => i === selectedItem);
+    setSelectedItem(currentIndex === filteredPhotos.length - 1 ? 0 : currentIndex + 1);
   };
+
+  const filteredPhotos = selectedVenue === 'all' 
+    ? galleryData.photos 
+    : galleryData.photos.filter(photo => photo.venue === selectedVenue);
+
+  const venues = Array.from(new Set(galleryData.photos.map(photo => photo.venue)));
 
   return (
     <section id="gallery" className="py-20 bg-gray-900">
@@ -43,13 +58,39 @@ const Gallery = () => {
               Gallery
             </span>
           </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto">
+          <p className="text-gray-300 max-w-2xl mx-auto mb-8">
             Take a look at our stunning venues and previous celebrations.
           </p>
+          
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            <button
+              onClick={() => setSelectedVenue('all')}
+              className={`px-4 py-2 rounded-full transition-colors duration-300 ${
+                selectedVenue === 'all' 
+                  ? 'bg-pink-600 text-white' 
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              All Venues
+            </button>
+            {venues.map((venue) => (
+              <button
+                key={venue}
+                onClick={() => setSelectedVenue(venue)}
+                className={`px-4 py-2 rounded-full transition-colors duration-300 ${
+                  selectedVenue === venue 
+                    ? 'bg-pink-600 text-white' 
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                {venue}
+              </button>
+            ))}
+          </div>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {galleryData.photos.map((photo, index) => (
+          {filteredPhotos.map((photo, index) => (
             <div 
               key={index}
               className="group aspect-square relative overflow-hidden rounded-lg cursor-pointer"
@@ -96,13 +137,13 @@ const Gallery = () => {
             
             <div className="max-w-5xl w-full max-h-[90vh]">
               <img 
-                src={galleryData.photos[selectedItem].fullSize} 
-                alt={galleryData.photos[selectedItem].alt}
+                src={filteredPhotos[selectedItem].fullSize} 
+                alt={filteredPhotos[selectedItem].alt}
                 className="object-contain max-h-[85vh] mx-auto"
               />
               <div className="mt-4 text-center">
                 <p className="text-white text-lg font-medium">
-                  {galleryData.photos[selectedItem].caption}
+                  {filteredPhotos[selectedItem].caption}
                 </p>
               </div>
             </div>
